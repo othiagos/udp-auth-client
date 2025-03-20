@@ -1,6 +1,6 @@
 use std::{net::UdpSocket, str};
 
-use crate::package::TokenType;
+use crate::package::{Package, TokenType};
 
 pub fn itr(socket: &UdpSocket, args: &[String]) {
     request_itr(socket, args);
@@ -24,18 +24,13 @@ fn request_itr(socket: &UdpSocket, args: &[String]) {
         panic!("few arguments: expected more arguments!");
     }
 
-    let mut id = [0u8; 12];
-    let bytes = args.first().unwrap().as_bytes();
-    let len = bytes.len().min(12);
-    id[..len].copy_from_slice(&bytes[..len]);
+    let id = args.first().unwrap();
+    let nonce = args.get(1).unwrap();
+    let pack_request_itr = Package::new_request_itr(id, nonce);
 
-    let mut pack_itr = vec![0u8; 18];
-    let req_type = TokenType::IndividualTokenRequest as u16;
-    pack_itr[..2].copy_from_slice(&req_type.to_be_bytes());
-    pack_itr[2..14].copy_from_slice(&id);
-    pack_itr[14..18].copy_from_slice(&args.get(1).unwrap().parse::<u32>().unwrap().to_le_bytes());
-
-    socket.send(&pack_itr).expect("couldn't send message!");
+    socket
+        .send(&pack_request_itr.to_bytes())
+        .expect("couldn't send package!");
 }
 
 fn response_itr(socket: &UdpSocket) {
@@ -45,13 +40,16 @@ fn response_itr(socket: &UdpSocket) {
         Err(e) => panic!("recv function failed: {e:?}"),
     };
 
+    let pack_responde_itr = Package::new_response_itr(&buf);
+
     let res_type = u16::from_le_bytes(response[..2].try_into().unwrap());
     if TokenType::IndividualTokenResponse as u16 == res_type {
         panic!("invalid response token!");
     }
 
+    let response = pack_responde_itr.to_bytes();
     let id = str::from_utf8(&response[2..14]).unwrap();
-    let nonce = u32::from_le_bytes(response[14..18].try_into().unwrap());
+    let nonce = u32::from_be_bytes(response[14..18].try_into().unwrap());
     let token = str::from_utf8(&response[18..]).unwrap();
 
     println!("{id}:{nonce}:{token}");
