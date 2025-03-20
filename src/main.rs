@@ -2,6 +2,7 @@ mod authentication;
 
 use std::env;
 use std::net::UdpSocket;
+use std::time::Instant;
 
 const NUMBER_ARGUMENTS: usize = 4;
 
@@ -16,10 +17,14 @@ fn main() {
     let port = args.get(2).unwrap().parse::<u16>().unwrap();
     let command = args.get(3).unwrap();
 
+    let start = Instant::now();
     let socket = UdpSocket::bind("[::]:0").expect("couldn't bind to address!");
     socket
         .connect((server, port))
         .expect("connect to the server failed!");
+    
+    let time = start.elapsed().as_millis();
+    println!("{time} milliseconds");
 
     match command.as_ref() {
         "itr" => authentication::sas::itr(&socket, &args[NUMBER_ARGUMENTS..]),
