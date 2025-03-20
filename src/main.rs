@@ -1,5 +1,4 @@
-mod communication;
-mod package;
+mod authentication;
 
 use std::env;
 use std::net::UdpSocket;
@@ -13,20 +12,20 @@ fn main() {
         panic!("few arguments!");
     }
 
-    let server = args.get(1).unwrap();
-    let port = args.get(2).unwrap();
+    let server: &str = args.get(1).unwrap().as_ref();
+    let port = args.get(2).unwrap().parse::<u16>().unwrap();
     let command = args.get(3).unwrap();
 
-    let socket = UdpSocket::bind("127.0.0.1:0").expect("couldn't bind to address!");
+    let socket = UdpSocket::bind("[::]:0").expect("couldn't bind to address!");
     socket
-        .connect(format!("{server}:{port}"))
-        .expect("connect function failed!");
+        .connect((server, port))
+        .expect("connect to the server failed!");
 
     match command.as_ref() {
-        "itr" => communication::itr(&socket, &args[NUMBER_ARGUMENTS..]),
-        "itv" => communication::itv(&socket, &args[NUMBER_ARGUMENTS..]),
-        "gtr" => communication::gtr(&socket, &args[NUMBER_ARGUMENTS..]),
-        "gtv" => communication::gtv(&socket, &args[NUMBER_ARGUMENTS..]),
+        "itr" => authentication::sas::itr(&socket, &args[NUMBER_ARGUMENTS..]),
+        "itv" => authentication::sas::itv(&socket, &args[NUMBER_ARGUMENTS..]),
+        "gtr" => authentication::gas::gtr(&socket, &args[NUMBER_ARGUMENTS..]),
+        "gtv" => authentication::gas::gtv(&socket, &args[NUMBER_ARGUMENTS..]),
         _ => panic!("unknown command!"),
     }
 }
