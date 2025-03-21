@@ -27,7 +27,7 @@ fn request(socket: &UdpSocket, args: &[String]) {
 }
 
 fn response(socket: &UdpSocket) {
-    let mut buf = [0; 100];
+    let mut buf = [0; 82];
     let buf = match socket.recv(&mut buf) {
         Ok(received) => &buf[..received],
         Err(e) => panic!("recv function failed: {e:?}"),

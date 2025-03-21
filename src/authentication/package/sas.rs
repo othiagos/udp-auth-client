@@ -18,10 +18,10 @@ impl SASPackageRequest {
         let nonce_as_bytes = nonce.parse::<u32>().unwrap().to_be_bytes();
 
         let len = id_as_bytes.len().min(12);
-        id_bytes[..len].copy_from_slice(&id_as_bytes[..id_as_bytes.len().min(12)]);
+        id_bytes[..len].copy_from_slice(&id_as_bytes[..len]);
 
         let len = nonce_as_bytes.len().min(4);
-        nonce_bytes[..len].copy_from_slice(&nonce_as_bytes[..nonce_as_bytes.len().min(4)]);
+        nonce_bytes[..len].copy_from_slice(&nonce_as_bytes[..len]);
 
         buffer.extend_from_slice(&pack_type.to_be_bytes());
         buffer.extend_from_slice(&id_bytes);
@@ -93,13 +93,13 @@ impl SASPackageValidation {
         let token_as_bytes = token.as_bytes();
 
         let len = id_as_bytes.len().min(12);
-        id_bytes[..len].copy_from_slice(&id_as_bytes[..id_as_bytes.len().min(12)]);
+        id_bytes[..len].copy_from_slice(&id_as_bytes[..len]);
 
         let len = nonce_as_bytes.len().min(4);
-        nonce_bytes[..len].copy_from_slice(&nonce_as_bytes[..nonce_as_bytes.len().min(4)]);
+        nonce_bytes[..len].copy_from_slice(&nonce_as_bytes[..len]);
 
         let len = token_as_bytes.len();
-        token_bytes[..len].copy_from_slice(&token_as_bytes[..token_as_bytes.len().min(64)]);
+        token_bytes[..len].copy_from_slice(&token_as_bytes[..len]);
 
         buffer.extend_from_slice(&pack_type.to_be_bytes());
         buffer.extend_from_slice(&id_bytes);
@@ -107,7 +107,6 @@ impl SASPackageValidation {
         buffer.extend_from_slice(&token_bytes);
 
         check_sas_validation(&buffer);
-
         Self { raw: buffer }
     }
 
