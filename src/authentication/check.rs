@@ -18,11 +18,11 @@ pub enum ErrorMessage {
     AsciiDecodeError = 5,
 }
 
-const INVALID_MESSAGE_CODE: &str = "Invalid message code!";
-const INCORRECT_MESSAGE_LENGTH: &str = "Incorrect message length!";
-const INVALID_PARAMETER: &str = "Invalid parameter!";
-const INVALID_SINGLE_TOKEN: &str = "Invalid single token!";
-const ASCII_DECODE_ERROR: &str = "ASCII decode error!";
+const INVALID_MESSAGE_CODE: &str = "Error: Invalid message code!";
+const INCORRECT_MESSAGE_LENGTH: &str = "Error: Incorrect message length!";
+const INVALID_PARAMETER: &str = "Error: Invalid parameter!";
+const INVALID_SINGLE_TOKEN: &str = "Error: Invalid single token!";
+const ASCII_DECODE_ERROR: &str = "Error: ASCII decode error!";
 
 fn check_error_code(token_type: u16, error_message: u16) {
     if TokenType::ErrorMessage as u16 == token_type {

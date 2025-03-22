@@ -13,12 +13,12 @@ fn main() {
         panic!("few arguments!");
     }
 
-    let server: &str = args.get(1).unwrap().as_ref();
+    let server = args.get(1).unwrap().as_ref();
     let port = args.get(2).unwrap().parse::<u16>().unwrap();
     let command = args.get(3).unwrap();
 
     let socket = UdpSocket::bind("[::]:0").expect("couldn't bind to address!");
-    let duration = Duration::new(30, 0);
+    let duration = Duration::new(5, 0);
     socket.set_read_timeout(Some(duration)).expect("msg");
     socket.set_write_timeout(Some(duration)).expect("msg");
 

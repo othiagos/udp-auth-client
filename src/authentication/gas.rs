@@ -1,6 +1,6 @@
 use std::net::UdpSocket;
 
-use super::package::gas::{GASPackageRequest, GASPackageResponse};
+use super::package::gas::{GASPackageRequest, GASPackageResponse, GASPackageStatus, GASPackageValidation};
 
 pub fn gtr(socket: &UdpSocket, args: &[String]) {
     let sas_len = request(socket, args);
@@ -8,8 +8,8 @@ pub fn gtr(socket: &UdpSocket, args: &[String]) {
 }
 
 pub fn gtv(socket: &UdpSocket, args: &[String]) {
-    validation(socket, args);
-    status(socket);
+    let sas_len = validation(socket, args);
+    status(socket, sas_len);
 }
 
 fn make_sas_from_arg(arg: &str) -> Vec<&str> {
@@ -35,7 +35,7 @@ fn request(socket: &UdpSocket, args: &[String]) -> usize {
 }
 
 fn response(socket: &UdpSocket, sas_len: usize) {
-    let buf_len = 4 + 80 * sas_len + 64;
+    let buf_len = 80 * sas_len + 68;
     let mut buf = vec![0; buf_len];
     buf.resize(buf_len, 0);
 
@@ -48,10 +48,29 @@ fn response(socket: &UdpSocket, sas_len: usize) {
     pack.print_gas();
 }
 
-fn validation(_socket: &UdpSocket, _args: &[String]) {
-    panic!("not impl!");
+fn validation(socket: &UdpSocket, args: &[String]) -> usize {
+    if args.is_empty() {
+        panic!("few arguments: expected more arguments!");
+    }
+
+    let sas_values: Vec<&str> = args.first().unwrap().split("+").collect();
+    let pack = GASPackageValidation::new(&sas_values);
+
+    socket
+        .send(pack.as_bytes())
+        .expect("couldn't send package!");
+
+    sas_values.len() - 1
 }
 
-fn status(_socket: &UdpSocket) {
-    panic!("not impl!");
+fn status(socket: &UdpSocket, sas_len: usize) {
+    let buf_len = 80 * sas_len + 69;
+    let mut buf = vec![0; buf_len];
+    let buf = match socket.recv(&mut buf) {
+        Ok(received) => &buf[..received],
+        Err(e) => panic!("recv function failed: {e:?}"),
+    };
+
+    let pack = GASPackageStatus::new(buf, sas_len);
+    pack.print_status();
 }
