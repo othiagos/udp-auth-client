@@ -37,7 +37,7 @@ fn check_error_code(token_type: u16, error_message: u16) {
             _ => None,
         } {
             eprintln!("{}", message);
-            std::process::exit(0);
+            std::process::exit(1);
         }
     }
 }

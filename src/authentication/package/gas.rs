@@ -17,7 +17,7 @@ fn add_sas_to_buffer(buf: &mut Vec<u8>, sas: &[&str]) {
     let sas_len = sas.len();
     if sas_len != REQUIRED_SAS_LEN {
         eprintln!("Incorrect number of arguments. Expected {REQUIRED_SAS_LEN}, got {sas_len}.");
-        std::process::exit(0);
+        std::process::exit(1);
     }
 
     let id = sas[0];
