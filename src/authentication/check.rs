@@ -36,7 +36,8 @@ fn check_error_code(token_type: u16, error_message: u16) {
             x if x == ErrorMessage::AsciiDecodeError as u16 => Some(&ERROR_MESSAGES[4]),
             _ => None,
         } {
-            panic!("{}", message);
+            eprintln!("{}", message);
+            std::process::exit(0);
         }
     }
 }

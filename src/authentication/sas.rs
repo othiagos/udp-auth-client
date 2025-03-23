@@ -8,8 +8,8 @@ const REQUEST_BUFFER_SIZE: usize = 82;
 const STATUS_BUFFER_SIZE: usize = 100;
 const EXPECTED_SAS_PARTS: usize = 3;
 const ARGUMENT_ERROR: &str = "Insufficient arguments provided!";
-const SEND_ERROR: &str = "Failed to send package!";
-const RECEIVE_ERROR: &str = "Failed to receive package";
+const ERROR_MSG_SEND_PACKAGE: &str = "Failed to send package!";
+const ERROR_MSG_RECV_PACKAGE: &str = "Failed to receive package!";
 
 pub fn itr(socket: &UdpSocket, args: &[String]) {
     request(socket, args);
@@ -23,23 +23,28 @@ pub fn itv(socket: &UdpSocket, args: &[String]) {
 
 fn request(socket: &UdpSocket, args: &[String]) {
     if args.len() < MIN_REQUEST_ARGS {
-        panic!("{}", ARGUMENT_ERROR);
+        eprintln!("{}", ARGUMENT_ERROR);
+        std::process::exit(1);
     }
 
     let id = args.first().unwrap();
     let nonce = args.get(1).unwrap();
     let pack = SASPackageRequest::new(id, nonce);
 
-    socket
-        .send(pack.as_bytes())
-        .expect(SEND_ERROR);
+    if let Err(e) = socket.send(pack.as_bytes()) {
+        eprintln!("{ERROR_MSG_SEND_PACKAGE} {e:?}");
+        std::process::exit(1);
+    }
 }
 
 fn response(socket: &UdpSocket) {
     let mut buf = vec![0; REQUEST_BUFFER_SIZE];
     let buf = match socket.recv(&mut buf) {
         Ok(received) => &buf[..received],
-        Err(e) => panic!("{} {:?}", RECEIVE_ERROR, e),
+        Err(e) => {
+            eprintln!("{} {:?}", ERROR_MSG_RECV_PACKAGE, e.to_string());
+            std::process::exit(1);
+        }
     };
 
     let pack = SASPackageResponse::new(buf);
@@ -48,13 +53,15 @@ fn response(socket: &UdpSocket) {
 
 fn validation(socket: &UdpSocket, args: &[String]) {
     if args.len() < MIN_VALIDATION_ARGS {
-        panic!("{}", ARGUMENT_ERROR);
+        eprintln!("{}", ARGUMENT_ERROR);
+        std::process::exit(1);
     }
 
     let sas: Vec<&str> = args.first().unwrap().split(':').collect();
 
     if sas.len() < EXPECTED_SAS_PARTS {
-        panic!("{}", ARGUMENT_ERROR);
+        eprintln!("{}", ARGUMENT_ERROR);
+        std::process::exit(1);
     }
 
     let id = sas[0];
@@ -63,16 +70,20 @@ fn validation(socket: &UdpSocket, args: &[String]) {
 
     let pack = SASPackageValidation::new(id, nonce, token);
 
-    socket
-        .send(pack.as_bytes())
-        .expect(SEND_ERROR);
+    if let Err(e) = socket.send(pack.as_bytes()) {
+        eprintln!("{ERROR_MSG_SEND_PACKAGE} {e:?}");
+        std::process::exit(1);
+    }
 }
 
 fn status(socket: &UdpSocket) {
     let mut buf = vec![0; STATUS_BUFFER_SIZE];
     let buf = match socket.recv(&mut buf) {
         Ok(received) => &buf[..received],
-        Err(e) => panic!("{} {:?}", RECEIVE_ERROR, e),
+        Err(e) => {
+            eprintln!("{} {:?}", ERROR_MSG_RECV_PACKAGE, e.to_string());
+            std::process::exit(1);
+        }
     };
 
     let pack = SASPackageStatus::new(buf);

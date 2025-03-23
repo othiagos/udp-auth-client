@@ -23,8 +23,15 @@ impl SASPackageRequest {
         let mut nonce_bytes = [0u8; SIZE_NONCE_LEN];
 
         let id_as_bytes = id.as_bytes();
-        let nonce_as_bytes = nonce.parse::<u32>().unwrap().to_be_bytes();
 
+        let nonce_as_bytes = match nonce.parse::<u32>() {
+            Ok(number) => number.to_be_bytes(),
+            Err(e) => {
+                eprintln!("Invalid nonce number: {:?}", e.to_string());
+                std::process::exit(1);
+            }
+        };
+    
         let len = id_as_bytes.len().min(SIZE_ID_LEN);
         id_bytes[..len].copy_from_slice(&id_as_bytes[..len]);
 
@@ -97,8 +104,15 @@ impl SASPackageValidation {
         let mut token_bytes = [0u8; SIZE_TOKEN_LEN];
 
         let id_as_bytes = id.as_bytes();
-        let nonce_as_bytes = nonce.parse::<u32>().unwrap().to_be_bytes();
         let token_as_bytes = token.as_bytes();
+
+        let nonce_as_bytes = match nonce.parse::<u32>() {
+            Ok(number) => number.to_be_bytes(),
+            Err(e) => {
+                eprintln!("Invalid nonce number: {:?}", e.to_string());
+                std::process::exit(1);
+            }
+        };
 
         let len = id_as_bytes.len().min(SIZE_ID_LEN);
         id_bytes[..len].copy_from_slice(&id_as_bytes[..len]);

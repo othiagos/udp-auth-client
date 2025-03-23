@@ -28,14 +28,16 @@ fn request(socket: &UdpSocket, args: &[String]) -> usize {
     let vec_sas: Vec<Vec<&str>> = args[1..].iter().map(|sas| make_sas_from_arg(sas)).collect();
 
     if vec_sas.len() != len {
-        panic!("Expected {} SAS values, but received {}", len, vec_sas.len());
+        eprintln!("Expected {} SAS values, but received {}", len, vec_sas.len());
+        std::process::exit(1);
     }
 
     let pack = GASPackageRequest::new(vec_sas);
 
-    socket
-        .send(pack.as_bytes())
-        .expect(ERROR_MSG_SEND_PACKAGE);
+    if let Err(e) = socket.send(pack.as_bytes()) {
+        eprintln!("{ERROR_MSG_SEND_PACKAGE} {e:?}");
+        std::process::exit(1);
+    }
 
     len
 }
@@ -47,7 +49,10 @@ fn response(socket: &UdpSocket, sas_len: usize) {
 
     let buf = match socket.recv(&mut buf) {
         Ok(received) => &buf[..received],
-        Err(e) => panic!("{} {:?}", ERROR_MSG_RECV_PACKAGE, e),
+        Err(e) => {
+            eprintln!("{} {:?}", ERROR_MSG_RECV_PACKAGE, e.to_string());
+            std::process::exit(1);
+        }
     };
 
     let pack = GASPackageResponse::new(buf, sas_len);
@@ -56,15 +61,17 @@ fn response(socket: &UdpSocket, sas_len: usize) {
 
 fn validation(socket: &UdpSocket, args: &[String]) -> usize {
     if args.is_empty() {
-        panic!("{}", ERROR_MSG_ARGUMENTS);
+        eprintln!("{}", ERROR_MSG_ARGUMENTS);
+        std::process::exit(1);
     }
 
     let sas_values: Vec<&str> = args.first().unwrap().split("+").collect();
     let pack = GASPackageValidation::new(&sas_values);
 
-    socket
-        .send(pack.as_bytes())
-        .expect(ERROR_MSG_SEND_PACKAGE);
+    if let Err(e) = socket.send(pack.as_bytes()) {
+        eprintln!("{ERROR_MSG_SEND_PACKAGE} {e:?}");
+        std::process::exit(1);
+    }
 
     sas_values.len() - 1
 }
@@ -75,7 +82,10 @@ fn status(socket: &UdpSocket, sas_len: usize) {
 
     let buf = match socket.recv(&mut buf) {
         Ok(received) => &buf[..received],
-        Err(e) => panic!("{} {:?}", ERROR_MSG_RECV_PACKAGE, e),
+        Err(e) => {
+            eprintln!("{} {:?}", ERROR_MSG_RECV_PACKAGE, e.to_string());
+            std::process::exit(1);
+        }
     };
 
     let pack = GASPackageStatus::new(buf, sas_len);
