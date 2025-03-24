@@ -8,6 +8,3 @@ opt-level = 0
 
 [profile.release]
 opt-level = 3
-
-[dependencies]
-posix-socket = "0.2.0"
